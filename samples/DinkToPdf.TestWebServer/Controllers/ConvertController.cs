@@ -18,7 +18,7 @@ namespace DinkToPdf.TestWebServer.Controllers
             _converter = converter;
         }
 
-        // GET api/values
+        // GET api/convert
         [HttpGet]
         public IActionResult Get()
         {
@@ -33,15 +33,17 @@ namespace DinkToPdf.TestWebServer.Controllers
                     new ObjectSettings()
                     {
                         Page = "http://google.com/",
+                        WebSettings = { DefaultEncoding = "utf-8" },
+                        HeaderSettings = { FontSize = 9, Right = "Page [page] of [toPage]", Line = true, Spacing = 2.812 }
                     },
-                     new ObjectSettings()
-                    {
-                        Page = "https://github.com/",
-                         
-                    }
+                    // new ObjectSettings()
+                    //{
+                    //    Page = "https://github.com/",
+
+                    //}
                 }
             };
-           
+
             byte[] pdf = _converter.Convert(doc);
 
             return File(pdf, "application/pdf", "Test.pdf");
