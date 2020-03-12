@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using DinkToPdf.Contracts;
 using System.IO;
+using Microsoft.Extensions.Logging;
 
 namespace DinkToPdf.TestWebServer.Controllers
 {
@@ -12,24 +13,30 @@ namespace DinkToPdf.TestWebServer.Controllers
     public class ConvertController : Controller
     {
         private IConverter _converter;
+        private readonly ILogger<ConvertController> _logger;
 
-        public ConvertController(IConverter converter)
+        public ConvertController(
+            IConverter converter,
+            ILogger<ConvertController> logger)
         {
             _converter = converter;
+            _logger = logger;
         }
 
         // GET api/convert
         [HttpGet]
         public IActionResult Get()
         {
-            var doc = new HtmlToPdfDocument()
+            try
             {
-                GlobalSettings = {
+                var doc = new HtmlToPdfDocument()
+                {
+                    GlobalSettings = {
                     PaperSize = PaperKind.A3,
                     Orientation = Orientation.Landscape,
                 },
 
-                Objects = {
+                    Objects = {
                     new ObjectSettings()
                     {
                         Page = "http://google.com/",
@@ -42,11 +49,17 @@ namespace DinkToPdf.TestWebServer.Controllers
 
                     //}
                 }
-            };
+                };
 
-            byte[] pdf = _converter.Convert(doc);
+                byte[] pdf = _converter.Convert(doc);
 
-            return File(pdf, "application/pdf", "Test.pdf");
+                return File(pdf, "application/pdf", "Test.pdf");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Failed to generate pdf.", e);
+                throw;
+            }
         }
     }
 }
